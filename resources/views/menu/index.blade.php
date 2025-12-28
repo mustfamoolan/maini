@@ -2,6 +2,48 @@
 
 @section('css')
 @vite(['node_modules/nouislider/dist/nouislider.min.css'])
+<style>
+    /* Categories horizontal scroll on mobile */
+    .categories-scroll-container {
+        overflow-x: auto;
+        overflow-y: hidden;
+        -webkit-overflow-scrolling: touch;
+        scrollbar-width: thin;
+        scrollbar-color: #09839A transparent;
+    }
+    
+    .categories-scroll-container::-webkit-scrollbar {
+        height: 6px;
+    }
+    
+    .categories-scroll-container::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    
+    .categories-scroll-container::-webkit-scrollbar-thumb {
+        background-color: #09839A;
+        border-radius: 3px;
+    }
+    
+    .categories-scroll {
+        min-width: max-content;
+        padding-bottom: 4px;
+    }
+    
+    /* Prevent wrapping on mobile */
+    @media (max-width: 768px) {
+        .categories-scroll {
+            flex-wrap: nowrap;
+        }
+    }
+    
+    /* Allow wrapping on larger screens */
+    @media (min-width: 769px) {
+        .categories-scroll {
+            flex-wrap: wrap;
+        }
+    }
+</style>
 @endsection
 
 @section('content')
@@ -9,21 +51,35 @@
 <div class="row">
     <div class="col-12">
         <div class="card bg-light-subtle mb-4">
-            <div class="card-header border-0">
-                <div class="row justify-content-between align-items-center">
-                    <div class="col-lg-6">
-                        <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item fw-medium"><a href="javascript: void(0);" class="text-dark">الأقسام</a></li>
-                            <li class="breadcrumb-item active">جميع الأطباق</li>
-                        </ol>
-                        <p class="mb-0 text-muted mt-2">عرض <span class="text-dark fw-semibold" id="dishes-count">{{ $categories->sum(fn($cat) => $cat->dishes->count()) }}</span> طبق</p>
+            <div class="card-body">
+                <!-- Search Bar -->
+                <div class="mb-3">
+                    <div class="search-bar">
+                        <span><i class="bx bx-search-alt"></i></span>
+                        <input type="search" class="form-control" id="search" placeholder="بحث ...">
                     </div>
-                    <div class="col-lg-6">
-                        <div class="search-bar mt-3 mt-lg-0">
-                            <span><i class="bx bx-search-alt"></i></span>
-                            <input type="search" class="form-control" id="search" placeholder="بحث ...">
-                        </div>
+                </div>
+                
+                <!-- Category Filter Buttons with Horizontal Scroll on Mobile -->
+                <div class="categories-scroll-container">
+                    <div class="d-flex gap-2 align-items-center categories-scroll">
+                        <button class="btn btn-primary category-filter-btn active flex-shrink-0" data-category-id="all" type="button">
+                            <iconify-icon icon="solar:list-bold-duotone" class="align-middle me-1"></iconify-icon>
+                            الكل
+                        </button>
+                        @foreach($categories as $category)
+                            <button class="btn btn-outline-primary category-filter-btn flex-shrink-0" data-category-id="{{ $category->id }}" type="button">
+                                {{ $category->name }}
+                            </button>
+                        @endforeach
                     </div>
+                </div>
+                
+                <!-- Dishes Count -->
+                <div class="mt-3">
+                    <p class="mb-0 text-muted">
+                        عرض <span class="text-dark fw-semibold" id="dishes-count">{{ $categories->sum(fn($cat) => $cat->dishes->count()) }}</span> طبق
+                    </p>
                 </div>
             </div>
         </div>
@@ -95,6 +151,31 @@ document.addEventListener('DOMContentLoaded', function() {
     // Update cart count on page load
     updateCartCount();
 
+    let selectedCategoryId = 'all';
+
+    // Category filter buttons
+    document.querySelectorAll('.category-filter-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            // Remove active class from all buttons
+            document.querySelectorAll('.category-filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                btn.classList.remove('btn-primary');
+                btn.classList.add('btn-outline-primary');
+            });
+            
+            // Add active class to clicked button
+            this.classList.add('active');
+            this.classList.remove('btn-outline-primary');
+            this.classList.add('btn-primary');
+            
+            // Update selected category
+            selectedCategoryId = this.getAttribute('data-category-id');
+            
+            // Filter dishes
+            filterDishes();
+        });
+    });
+
     // Search functionality
     const searchInput = document.getElementById('search');
     if (searchInput) {
@@ -109,12 +190,17 @@ document.addEventListener('DOMContentLoaded', function() {
         let visibleCount = 0;
 
         dishes.forEach(item => {
+            const categoryId = item.getAttribute('data-category-id');
             const dishName = item.querySelector('h5').textContent.toLowerCase();
             const dishDescription = item.querySelector('p') ? item.querySelector('p').textContent.toLowerCase() : '';
             
+            // Check category filter
+            const matchesCategory = selectedCategoryId === 'all' || selectedCategoryId === categoryId;
+            
+            // Check search filter
             const matchesSearch = !searchTerm || dishName.includes(searchTerm) || dishDescription.includes(searchTerm);
             
-            if (matchesSearch) {
+            if (matchesCategory && matchesSearch) {
                 item.style.display = '';
                 visibleCount++;
             } else {

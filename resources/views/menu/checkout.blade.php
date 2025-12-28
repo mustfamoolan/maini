@@ -100,13 +100,8 @@ document.addEventListener('DOMContentLoaded', function() {
         .then(response => response.json())
         .then(data => {
             if (data.success) {
-                // Open WhatsApp in new window
-                window.open(data.whatsapp_url, '_blank');
-                
-                // Redirect to menu after a short delay
-                setTimeout(function() {
-                    window.location.href = '{{ route("menu.index") }}';
-                }, 1000);
+                // Open WhatsApp directly (works on iPhone)
+                window.location.href = data.whatsapp_url;
             } else {
                 alert('حدث خطأ أثناء إرسال الطلب');
             }
