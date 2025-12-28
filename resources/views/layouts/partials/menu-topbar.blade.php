@@ -5,7 +5,7 @@
                 <!-- Logo -->
                 <div class="topbar-item">
                     <a href="{{ route('menu.index') }}" class="d-flex align-items-center">
-                        <img src="{{ asset('images/logo1.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px; width: auto;">
+                        <img src="{{ asset('images/logo1.png') }}?v={{ filemtime(public_path('images/logo1.png')) }}" alt="Logo" class="img-fluid" style="max-height: 40px; width: auto;">
                     </a>
                 </div>
                 <!-- Title -->
