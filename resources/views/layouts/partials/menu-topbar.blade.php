@@ -1,7 +1,13 @@
 <header class="topbar">
     <div class="container-fluid">
         <div class="navbar-header">
-            <div class="d-flex align-items-center">
+            <div class="d-flex align-items-center gap-2">
+                <!-- Logo -->
+                <div class="topbar-item">
+                    <a href="{{ route('menu.index') }}" class="d-flex align-items-center">
+                        <img src="{{ asset('images/logo1.png') }}" alt="Logo" class="img-fluid" style="max-height: 40px; width: auto;">
+                    </a>
+                </div>
                 <!-- Title -->
                 <div class="topbar-item">
                     <h4 class="fw-bold topbar-button pe-none mb-0">{{ $title ?? 'المينيو' }}</h4>
